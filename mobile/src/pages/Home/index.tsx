@@ -1,22 +1,56 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Feather as Icon } from '@expo/vector-icons';
 import { StyleSheet, View, Image, Text, ImageBackground } from 'react-native';
 import { RectButton } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import RNPickerSelect from 'react-native-picker-select';
 
+interface Uf {
+  id: number,
+  sigla: string,
+  nome: string
+}
+
+interface Cidade {
+  id: number,
+  nome: string
+}
+
 const Home = () => {
   const navigation = useNavigation();
 
+  const [ufs, setUfs] = useState<Uf[]>([]);
+  const [cities, setCities] = useState<Cidade[]>([]);
+
+  const [selectedUf, setSelectedUf] = useState('0');
+  const [selectedCity, setSelectedCity] = useState('0');
+
+  useEffect(() => {
+    axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome').then(response => {
+      setUfs(response.data);
+      console.log(response.data);
+    })
+  }, []);
+
+  useEffect(() => {
+    axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedUf}/municipios`).then(response => {
+      setCities(response.data);
+    });
+  }, [ selectedUf ]);
+
   function handleNavigateToPoints() {
-    navigation.navigate('Points');
+    navigation.navigate('Points', {
+      city: selectedCity,
+      uf: selectedUf
+    });
   }
 
   const items = [
     { label: 'Distrito Federal', value: 'DF' },
     { label: 'Goiás', value: 'GO' },
-    { label: 'Amazaonas', value: 'AM' },
-    { label: 'Mato Grosso do Sul', value: 'MS' },
+    { label: 'Amazonas', value: 'AM' },
+    { label: 'Tocantins', value: 'TO' },
   ];
 
   return (
@@ -32,38 +66,35 @@ const Home = () => {
       </View>
 
       <RNPickerSelect
-        onValueChange={ (value) => console.log(value) }
-        items={ [
-          { label: 'Distrito Federal', value: 'DF', color: 'black' },
-          { label: 'Goiás', value: 'GO', color: 'black' },
-          { label: 'Amazonas', value: 'AM', color: 'black' },
-          { label: 'Tocantins', value: 'TO', color: 'black' },
-        ] }
-        placeholder={ { label: 'Selecione uma UF', value: null, color: '#6C6C80' } }
+        onValueChange={ (value) => {
+          setSelectedUf(value);
+          setSelectedCity('0');
+        } }
+        items={ ufs.map(uf => (
+          {label: uf.nome, value: uf.sigla}
+        )) }
+        placeholder={ { label: 'Selecione uma UF', value: '0', color: '#6C6C80' } }
         style={ {
           inputIOS: {
-            color: '#322153',
+            color: '#322153'
           },
           inputAndroid: {
-            color: '#322153',
+            color: '#322153'
           },
         } }
       />
       <RNPickerSelect
-        onValueChange={ (value) => console.log(value) }
-        items={ [
-          { label: 'Distrito Federal', value: 'DF' },
-          { label: 'Goiás', value: 'GO' },
-          { label: 'Amazonas', value: 'AM' },
-          { label: 'Tocantins', value: 'TO' },
-        ] }
-        placeholder={ { label: 'Selecione uma UF', value: null, color: '#6C6C80' } }
+        onValueChange={ (value) => setSelectedCity(value) }
+        items={ cities.map(city => (
+          {label: city.nome, value: city.nome}
+        )) }
+        placeholder={ { label: 'Selecione uma Cidade', value: '0', color: '#6C6C80' } }
         style={ {
           inputIOS: {
-            color: '#322153',
+            color: '#322153'
           },
           inputAndroid: {
-            color: '#322153',
+            color: '#322153'
           },
         } }
       />
