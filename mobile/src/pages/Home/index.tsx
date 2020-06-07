@@ -29,7 +29,6 @@ const Home = () => {
   useEffect(() => {
     axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome').then(response => {
       setUfs(response.data);
-      console.log(response.data);
     })
   }, []);
 
